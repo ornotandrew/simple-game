@@ -1,12 +1,22 @@
 CC = g++
-CFLAGS = -Wall -std=c++11 -I/usr/local/include/SDL2 -D_REENTRANT
-LDFLAGS = -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lSDL2 -lpthread
+CFLAGS = -Wall -std=c++11 -D_REENTRANT
+INCLUDES = -I/usr/local/include/SDL2
+LFLAGS = -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lSDL2 -lpthread
 
-main: main.cpp
-	$(CC) -o main main.cpp $(CFLAGS) $(LDFLAGS)
+SRC = $(wildcard *.cpp)
+OBJ = $(SRC:.cpp=.o)
+TARGET = simple-game
 
-run: main
-	./main
+default: main
+
+main: $(OBJ)
+	$(CC) -o $(TARGET) $(OBJ) $(CFLAGS) $(LFLAGS)
+
+%.o: %.cpp
+	$(CC) -o $@ -c $< $(CFLAGS) $(INCLUDES)
+
+run: clean main
+	./$(TARGET)
 
 clean:
-	rm -f main main.o
+	rm -f $(TARGET) $(OBJ)
