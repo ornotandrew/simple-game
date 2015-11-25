@@ -1,15 +1,13 @@
+#define SDL_STBIMAGE_IMPLEMENTATION
+
 #include <cstdlib>
 #include <iostream>
-#include <SDL2/SDL.h>
+#include <SDL.h>
+#include "SDL_stbimage.h"
 #include "render.h"
 
 const int SCREEN_WIDTH  = 800;
 const int SCREEN_HEIGHT = 600;
-
-SDL_Window *window;
-SDL_Renderer *renderer;
-
-SDL_Texture *background;
 
 void initSDL()
 {
@@ -19,8 +17,9 @@ void initSDL()
         exit(1);
     }
 
-    window = SDL_CreateWindow("Simple Game", 100, 100, SCREEN_WIDTH,
-        SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Simple Game", SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,
+                              SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == nullptr)
     {
         logSDLError(std::cout, "CreateWindow");
@@ -28,8 +27,7 @@ void initSDL()
         exit(1);
     }
 
-    renderer = SDL_CreateRenderer(window, -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == nullptr)
     {
         logSDLError(std::cout, "CreateRenderer");
@@ -37,20 +35,15 @@ void initSDL()
         SDL_Quit();
         exit(1);
     }
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    background = loadTexture("background.bmp", renderer);
-    if (background == nullptr)
-    {
-        cleanupSDL();
-        SDL_Quit();
-        exit(1);
-    }
+    backgroundTex = loadTexture("resources/background.bmp", renderer);
+    playerTex = loadTexture("resources/player.png", renderer);
 }
 
 void cleanupSDL()
 {
-    SDL_DestroyTexture(background);
+    SDL_DestroyTexture(backgroundTex);
+    SDL_DestroyTexture(playerTex);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -64,30 +57,49 @@ void logSDLError(std::ostream &os, const std::string &msg)
 SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
 {
 	SDL_Texture *texture = nullptr;
-	SDL_Surface *loadedImage = SDL_LoadBMP(file.c_str());
+
+    // loads the image file at the given path into a RGB(A) SDL_Surface
+    // Returns NULL on error, use SDL_GetError() to get more information.
+    SDL_Surface* loadedImage  = STBIMG_Load(file.c_str());
+
 	if (loadedImage != nullptr){
 		texture = SDL_CreateTextureFromSurface(ren, loadedImage);
 		SDL_FreeSurface(loadedImage);
 		if (texture == nullptr){
 			logSDLError(std::cout, "CreateTextureFromSurface");
+			cleanupSDL();
+			SDL_Quit();
+			exit(1);
 		}
 	}
 	else {
 		logSDLError(std::cout, "LoadBMP");
+        cleanupSDL();
+        SDL_Quit();
+        exit(1);
 	}
 	return texture;
 }
 
-void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y)
+void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int w=0, int h=0)
 {
 	SDL_Rect dst;
 	dst.x = x;
 	dst.y = y;
-	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
+
+	// Scale the image if needed
+	if(w && h)
+    {
+        dst.w = w;
+        dst.h = h;
+    }
+    else
+    {
+        SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
+    }
+
 	SDL_RenderCopy(ren, tex, NULL, &dst);
 }
-
-
 
 void tileBackground(SDL_Texture* background)
 {
@@ -106,7 +118,8 @@ void tileBackground(SDL_Texture* background)
 void render()
 {
     SDL_RenderClear(renderer);
-    tileBackground(background);
+    tileBackground(backgroundTex);
+    renderTexture(playerTex, renderer, (SCREEN_WIDTH-250)/2, (SCREEN_HEIGHT-250)/2, 250, 250);
     SDL_RenderPresent(renderer);
 }
 

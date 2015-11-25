@@ -1,9 +1,9 @@
 CC = g++
-CFLAGS = -Wall -std=c++11 -D_REENTRANT
-INCLUDES = -I/usr/local/include/SDL2
-LFLAGS = -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lSDL2 -lpthread
+CFLAGS = -Wall -std=c++11
+INCLUDES = -I/usr/local/include/SDL2 -Iinclude
+LFLAGS = -L/usr/local/lib -lSDL2
 
-SRC = $(wildcard *.cpp)
+SRC = $(wildcard src/*.cpp)
 OBJ = $(SRC:.cpp=.o)
 TARGET = simple-game
 
@@ -19,4 +19,4 @@ run: clean main
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) $(OBJ)
+	rm -f src/*.o

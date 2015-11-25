@@ -1,1 +1,4 @@
-main
+simple-game
+*.o
+tags
+.ycm_extra_conf.py*
