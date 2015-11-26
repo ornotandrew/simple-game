@@ -1,19 +1,20 @@
 #include <iostream>
-#include <string>
 #include <SDL.h>
-#include "main.h"
 #include "render.h"
+#include "game.h"
 
 int main()
 {
     initSDL();
-    render();
-    SDL_Delay(1000);
+    Game game;
+    while(game.isRunning)
+    {
+        game.update();
+        game.render();
+        SDL_Delay(FRAMETIME);
+    }
+
     cleanupSDL();
     return 0;
 }
 
-void processInput()
-{
-
-}

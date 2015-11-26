@@ -1,31 +1,38 @@
-#ifndef GAME
-#define GAME value
+#ifndef GAME_H
+#define GAME_H
 
-#include "render.h"
-#include "game.h"
+#include <SDL.h>
 
-class Game
-{
-    public:
-        unsigned int score;
-        Player* player;
+typedef uint8_t uint8 ;
 
-        Game();
-};
-
+const int FRAMERATE = 60;
+const int FRAMETIME = 1000/60;
+const int PLAYER_SIZE = 75;
 
 class GameObject
 {
     public:
         SDL_Texture* texture = 0;
-        unsigned int x;
-        unsigned int y;
+        int x, y, z, w, h;
 };
 
 class Player: public GameObject
 {
     public:
-        Player(int x, int y);
+        float movespeed;
+        Player(int x=0, int y=0, int w=PLAYER_SIZE, int h=PLAYER_SIZE);
+};
+
+class Game
+{
+    public:
+        bool isRunning;
+        uint8 score;
+        Player* player;
+        Game();
+        ~Game();
+        void update();
+        void render();
 };
 
 #endif

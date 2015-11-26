@@ -6,8 +6,8 @@
 #include "SDL_stbimage.h"
 #include "render.h"
 
-const int SCREEN_WIDTH  = 800;
-const int SCREEN_HEIGHT = 600;
+SDL_Window *window;
+SDL_Renderer *renderer;
 
 void initSDL()
 {
@@ -35,15 +35,10 @@ void initSDL()
         SDL_Quit();
         exit(1);
     }
-
-    backgroundTex = loadTexture("resources/background.bmp", renderer);
-    playerTex = loadTexture("resources/player.png", renderer);
 }
 
 void cleanupSDL()
 {
-    SDL_DestroyTexture(backgroundTex);
-    SDL_DestroyTexture(playerTex);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -54,7 +49,7 @@ void logSDLError(std::ostream &os, const std::string &msg)
 	os << msg << " error: " << SDL_GetError() << std::endl;
 }
 
-SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
+SDL_Texture* loadTexture(const std::string &file)
 {
 	SDL_Texture *texture = nullptr;
 
@@ -63,7 +58,7 @@ SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
     SDL_Surface* loadedImage  = STBIMG_Load(file.c_str());
 
 	if (loadedImage != nullptr){
-		texture = SDL_CreateTextureFromSurface(ren, loadedImage);
+		texture = SDL_CreateTextureFromSurface(renderer, loadedImage);
 		SDL_FreeSurface(loadedImage);
 		if (texture == nullptr){
 			logSDLError(std::cout, "CreateTextureFromSurface");
@@ -81,8 +76,13 @@ SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
 	return texture;
 }
 
-void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int w=0, int h=0)
+void renderTexture(SDL_Texture *tex, int x, int y, int w, int h)
 {
+	if(tex == nullptr)
+    {
+        std::cout << "Cannot render a null texture" << std::endl;
+        exit(1);
+    }
 	SDL_Rect dst;
 	dst.x = x;
 	dst.y = y;
@@ -98,7 +98,7 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int w=0, i
         SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
     }
 
-	SDL_RenderCopy(ren, tex, NULL, &dst);
+	SDL_RenderCopy(renderer, tex, NULL, &dst);
 }
 
 void tileBackground(SDL_Texture* background)
@@ -110,16 +110,17 @@ void tileBackground(SDL_Texture* background)
     {
         for(int j=0; j<SCREEN_HEIGHT; j+=height)
         {
-            renderTexture(background, renderer, i, j);
+            renderTexture(background, i, j);
         }
     }
 }
 
-void render()
+void clearRenderer()
 {
     SDL_RenderClear(renderer);
-    tileBackground(backgroundTex);
-    renderTexture(playerTex, renderer, (SCREEN_WIDTH-250)/2, (SCREEN_HEIGHT-250)/2, 250, 250);
-    SDL_RenderPresent(renderer);
 }
 
+void presentRenderer()
+{
+    SDL_RenderPresent(renderer);
+}
