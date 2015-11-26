@@ -14,7 +14,7 @@ void presentRenderer();
 
 void logSDLError(std::ostream &os, const std::string &msg);
 SDL_Texture* loadTexture(const std::string &file);
-void renderTexture(SDL_Texture *tex, int x, int y, int w=0, int h=0);
+void renderTexture(SDL_Texture *tex, int x=0, int y=0, int w=0, int h=0, float angle=0.0);
 void tileBackground(SDL_Texture* background);
 
 #endif

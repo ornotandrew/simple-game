@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <math.h>
 #include <SDL.h>
 #include "render.h"
 #include "game.h"
@@ -7,6 +8,9 @@
 // Textures
 SDL_Texture *backgroundTex;
 SDL_Texture *playerTex;
+
+// Mouse coordinates
+int xMouse, yMouse;
 
 Game::Game()
 {
@@ -21,7 +25,9 @@ Game::Game()
 
 void Game::update()
 {
-    // Handle the window close event
+
+    // Update the mouse position
+    // and handle close event
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
@@ -29,9 +35,17 @@ void Game::update()
         {
             isRunning = false;
         }
+        else if(e.type == SDL_MOUSEMOTION)
+        {
+            SDL_GetMouseState(&xMouse, &yMouse);
+        }
     }
 
+    // =============
     // Game controls
+    // =============
+
+    // Movement
     const uint8* keystate = SDL_GetKeyboardState(NULL);
     if(keystate[SDL_SCANCODE_A])
     {
@@ -58,6 +72,11 @@ void Game::update()
         if(player->y + player->h > SCREEN_HEIGHT)
             player->y = SCREEN_HEIGHT - player->h;
     }
+
+    // Rotation
+    float x = (player->x + player->w/2) - xMouse;
+    float y = (player->y + player->h/2) - yMouse;
+    player->angle = atan2(y, x) * 180.0/M_PI - 90;
 }
 
 Game::~Game()
@@ -79,7 +98,7 @@ void Game::render()
     
     for(GameObject* obj: list)
     {
-        renderTexture(obj->texture, obj->x, obj->y, obj->w, obj->h);
+        renderTexture(obj->texture, obj->x, obj->y, obj->w, obj->h, obj->angle);
     }
 
     presentRenderer();
@@ -94,5 +113,6 @@ Player::Player(int _x, int _y, int _w, int _h)
    h = _h;
    texture = playerTex;
    movespeed = 0.5;
+   angle = 0;
 }
 

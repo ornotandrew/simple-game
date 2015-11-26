@@ -76,7 +76,7 @@ SDL_Texture* loadTexture(const std::string &file)
 	return texture;
 }
 
-void renderTexture(SDL_Texture *tex, int x, int y, int w, int h)
+void renderTexture(SDL_Texture *tex, int x, int y, int w, int h, float angle)
 {
 	if(tex == nullptr)
     {
@@ -98,7 +98,7 @@ void renderTexture(SDL_Texture *tex, int x, int y, int w, int h)
         SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
     }
 
-	SDL_RenderCopy(renderer, tex, NULL, &dst);
+	SDL_RenderCopyEx(renderer, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
 }
 
 void tileBackground(SDL_Texture* background)

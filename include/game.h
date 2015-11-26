@@ -12,8 +12,9 @@ const int PLAYER_SIZE = 75;
 class GameObject
 {
     public:
-        SDL_Texture* texture = 0;
+        SDL_Texture* texture;
         int x, y, z, w, h;
+        float angle;
 };
 
 class Player: public GameObject
