@@ -101,6 +101,11 @@ void renderTexture(SDL_Texture *tex, int x, int y, int w, int h, float angle)
 	SDL_RenderCopyEx(renderer, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
 }
 
+void renderGameObject(GameObject& obj)
+{
+    renderTexture(obj.texture, obj.x-obj.w/2, obj.y-obj.h/2, obj.w, obj.h, obj.angle);
+}
+
 void tileBackground(SDL_Texture* background)
 {
     int width, height;
