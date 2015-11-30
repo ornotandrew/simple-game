@@ -18,13 +18,15 @@ class GameObject
     public:
         SDL_Texture* texture;
         int x, y, z, w, h; // x, y are the center of the object
-        float angle;
+        float angle; // in radians
 };
 
 class Player: public GameObject
 {
     public:
         float movespeed;
+        float weaponCooldown; // ms
+        float timeToShoot; // ms
         Game* game;
 
         Player(Game* game, int x, int y);
@@ -38,6 +40,7 @@ class Projectile: public GameObject
         GameObject* owner;
 
         Projectile(GameObject& owner);
+        void move();
 };
 
 class Game
@@ -46,7 +49,7 @@ class Game
         bool isRunning;
         uint8 score;
         Player* player;
-        std::vector<GameObject*> projectiles;
+        std::vector<Projectile*> projectiles;
 
         Game();
         ~Game();

@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <math.h>
 #include <SDL.h>
 #include "SDL_stbimage.h"
 #include "render.h"
@@ -98,7 +99,7 @@ void renderTexture(SDL_Texture *tex, int x, int y, int w, int h, float angle)
         SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
     }
 
-	SDL_RenderCopyEx(renderer, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(renderer, tex, NULL, &dst, angle * 180/M_PI, NULL, SDL_FLIP_NONE);
 }
 
 void renderGameObject(GameObject& obj)

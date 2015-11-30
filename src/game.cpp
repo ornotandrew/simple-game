@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include <math.h>
 #include <SDL.h>
 #include "render.h"
@@ -42,12 +43,35 @@ void Game::update()
     // Housekeeping
     // ============
 
-    // Close event
+    // Handle close event
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
         if (e.type == SDL_QUIT)
             isRunning = false;
+    }
+
+    // ===========
+    // Projectiles
+    // ===========
+
+    // Move projectiles
+    for(uint8 i=0; i<projectiles.size(); i++)
+    {
+            projectiles[i]->move();
+            int maxSide = projectiles[i]->w;
+            if(projectiles[i]->h > maxSide)
+                maxSide = projectiles[i]->h;
+
+            if(projectiles[i]->x < -2*maxSide ||
+               projectiles[i]->x > SCREEN_WIDTH + 2*maxSide ||
+               projectiles[i]->y < -2*maxSide ||
+               projectiles[i]->y > SCREEN_HEIGHT + 2*2*maxSide)
+            {
+                delete projectiles[i];
+                projectiles.erase(projectiles.begin()+i);
+                i--;
+            }
     }
 
     // Kill anything that is hit by a projectile
@@ -56,9 +80,12 @@ void Game::update()
     // Mouse controls
     // ==============
 
+    // Decrement player's shoot cooldown
+    player->timeToShoot -= FRAMETIME;
+
     mouseState = SDL_GetMouseState(&xMouse, &yMouse);
 
-    if(mouseState & SDL_BUTTON(SDL_BUTTON_LEFT))
+    if(mouseState & SDL_BUTTON(SDL_BUTTON_LEFT) && player->timeToShoot <= 0)
         player->shoot();
 
     // =================
@@ -96,7 +123,12 @@ void Game::update()
     // Rotation
     float x = (player->x + player->w/2) - xMouse;
     float y = (player->y + player->h/2) - yMouse;
-    player->angle = atan2(y, x) * 180.0/M_PI - 90;
+    player->angle = atan2(y, x) - M_PI/2;
+}
+
+bool heightSort(const GameObject* obj1, const GameObject* obj2)
+{
+    return obj1->z < obj2->z;
 }
 
 void Game::render()
@@ -109,12 +141,10 @@ void Game::render()
     std::vector<GameObject*> list = {player};
     list.insert(list.end(), projectiles.begin(), projectiles.end());
 
-    // TODO: sort
+    std::sort(list.begin(), list.end(), heightSort);
     
     for(GameObject* obj: list)
-    {
         renderGameObject(*obj);
-    }
 
     presentRenderer();
 }
@@ -128,16 +158,18 @@ Player::Player(Game* game, int x, int y)
     this->x = x;
     this->y = y;
     this->z = 99;
-    std::cout << w << " " << h << std::endl;
     w *= TEXTURE_RATIO;
     h *= TEXTURE_RATIO;
     angle = 0;
     movespeed = 0.5;
+    weaponCooldown = 200;
+    timeToShoot = 0;
 }
 
 void Player::shoot()
 {
    game->projectiles.push_back(new Projectile(*this));
+   timeToShoot = weaponCooldown;
 }
 
 Projectile::Projectile(GameObject& owner)
@@ -152,5 +184,14 @@ Projectile::Projectile(GameObject& owner)
     angle = owner.angle;
     movespeed = 1;
     this->owner = &owner;
+
+    // Make the bullets appear slightly away from the center
+    move();
+}
+
+void Projectile::move()
+{
+    x += FRAMETIME * movespeed * cos(angle - M_PI/2);
+    y += FRAMETIME * movespeed * sin(angle - M_PI/2);
 }
 
