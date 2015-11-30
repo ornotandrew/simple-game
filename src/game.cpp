@@ -175,8 +175,6 @@ void Player::shoot()
 Projectile::Projectile(GameObject& owner)
 {
     texture = projectileTex;
-    x = owner.x;
-    y = owner.y;
     z = 50;
     SDL_QueryTexture(projectileTex, NULL, NULL, &w, &h);
     w *= TEXTURE_RATIO;
@@ -186,7 +184,13 @@ Projectile::Projectile(GameObject& owner)
     this->owner = &owner;
 
     // Make the bullets appear slightly away from the center
-    move();
+    int min = owner.w;
+    if(owner.h < min)
+        min = owner.h;
+
+    min *= 0.6; // but not too far
+    x = owner.x + min * cos(angle - M_PI/2);
+    y = owner.y + min * sin(angle - M_PI/2);
 }
 
 void Projectile::move()
